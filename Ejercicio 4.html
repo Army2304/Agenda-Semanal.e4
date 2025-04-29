@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agenda Semanal</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('https://images.unsplash.com/photo-1493244040629-496f6d136cc3?auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+    }
+
+    .overlay {
+      background-color: rgba(255, 255, 255, 0.95);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .agenda-container {
+      overflow-x: auto;
+    }
+
+    .agenda-header {
+      display: grid;
+      grid-template-columns: 100px repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .agenda-header div {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+
+    .agenda-body {
+      display: grid;
+      grid-template-columns: 100px repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .agenda-time {
+      background-color: #f0f0f0;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+
+    .agenda-cell {
+      background-color: #ffffff;
+      padding: 5px;
+      border: 1px solid #ccc;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 5px;
+      position: relative;
+    }
+
+    .activity-input {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #aaa;
+      background: transparent;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 5px;
+    }
+
+    .activity-check {
+      align-self: flex-end;
+      margin-top: auto;
+    }
+
+    .checked-text {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    @media(max-width: 768px) {
+      .agenda-header,
+      .agenda-body {
+        grid-template-columns: 80px repeat(7, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <h1>Agenda Semanal</h1>
+    <div class="agenda-container">
+      <div class="agenda-header">
+        <div></div>
+        <div>Lunes</div>
+        <div>Martes</div>
+        <div>Miércoles</div>
+        <div>Jueves</div>
+        <div>Viernes</div>
+        <div>Sábado</div>
+        <div>Domingo</div>
+      </div>
+      <div class="agenda-body" id="agenda-body">
+        <!-- Aquí se cargará el contenido dinámicamente -->
+      </div>
+    </div>
+    <div class="footer">
+      Agenda semanal sencilla — Fondo: Unsplash
+    </div>
+  </div>
+
+  <script>
+    const agendaBody = document.getElementById('agenda-body');
+    const startHour = 6;
+    const endHour = 22;
+    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+    function formatHour(hour) {
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const adjustedHour = hour % 12 === 0 ? 12 : hour % 12;
+      return `${adjustedHour}:00 ${ampm}`;
+    }
+
+    function saveData(id, data) {
+      localStorage.setItem(id, JSON.stringify(data));
+    }
+
+    function loadData(id) {
+      const data = localStorage.getItem(id);
+      return data ? JSON.parse(data) : null;
+    }
+
+    for (let hour = startHour; hour <= endHour; hour++) {
+      // Columna de la hora
+      const timeCell = document.createElement('div');
+      timeCell.className = 'agenda-time';
+      timeCell.textContent = formatHour(hour);
+      agendaBody.appendChild(timeCell);
+
+      // Celdas por cada día
+      for (let day = 0; day < days.length; day++) {
+        const activityCell = document.createElement('div');
+        activityCell.className = 'agenda-cell';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Actividad...';
+        input.className = 'activity-input';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'activity-check';
+
+        const cellId = `cell-${day}-${hour}`;
+
+        // Cargar datos si existen
+        const savedData = loadData(cellId);
+        if (savedData) {
+          input.value = savedData.text;
+          checkbox.checked = savedData.checked;
+          if (savedData.checked) {
+            input.classList.add('checked-text');
+          }
+        }
+
+        // Guardar cambios
+        input.addEventListener('input', () => {
+          saveData(cellId, { text: input.value, checked: checkbox.checked });
+        });
+
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) {
+            input.classList.add('checked-text');
+          } else {
+            input.classList.remove('checked-text');
+          }
+          saveData(cellId, { text: input.value, checked: checkbox.checked });
+        });
+
+        activityCell.appendChild(input);
+        activityCell.appendChild(checkbox);
+
+        agendaBody.appendChild(activityCell);
+      }
+    }
+  </script>
+</body>
+</html>
